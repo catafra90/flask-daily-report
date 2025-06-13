@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: daily-report-app
+    env: python
+    buildCommand: ""
+    startCommand: python form_app.py
+    plan: free
