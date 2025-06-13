@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: flask-daily-report
+    env: python
+    buildCommand: ""
+    startCommand: python form_app.py
+    plan: free
