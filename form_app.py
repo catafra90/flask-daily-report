@@ -1,5 +1,4 @@
-print("🚀 Starting form_app.py on Render")
-
+print("🚀 FORCING DEPLOY BUILD")
 from flask import Flask, request, render_template_string, send_file
 import os
 from datetime import datetime
@@ -8,10 +7,10 @@ import requests
 
 app = Flask(__name__)
 
+# ✅ Your actual Google Chat webhook URL
 CHAT_WEBHOOK_URL = "https://chat.googleapis.com/v1/spaces/4ZsvACAAAAE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=QAsMtcgO05jwCeg2HXcDrCK7ngmtq0vpQwguobG8-vU"
 
 def save_report_to_excel(data):
-    print("📝 Saving to Excel...")
     file_path = os.path.join("data", "reports.xlsx")
     os.makedirs("data", exist_ok=True)
 
@@ -48,10 +47,8 @@ def save_report_to_excel(data):
     ])
 
     wb.save(file_path)
-    print("✅ Excel saved at:", os.path.abspath(file_path))
 
 def send_to_google_chat(data):
-    print("📤 Sending to Google Chat...")
     message = {
         "text": (
             "📋 *Daily Report Submitted*\n"
@@ -61,8 +58,7 @@ def send_to_google_chat(data):
         )
     }
     try:
-        response = requests.post(CHAT_WEBHOOK_URL, json=message)
-        print("✅ Google Chat Response:", response.status_code)
+        requests.post(CHAT_WEBHOOK_URL, json=message)
     except Exception as e:
         print("❌ Google Chat Error:", e)
 
@@ -72,20 +68,52 @@ def index():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>📋 Daily Report</title>
+        <title>Daily Report Form</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-            body { font-family: Arial; padding: 20px; max-width: 600px; margin: auto; }
-            .section { display: none; padding: 20px; border-radius: 10px; background: #f1f1f1; }
-            .section.active { display: block; }
-            textarea { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 10px; }
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #c6006e;
+                color: white;
+                margin: 0;
+                padding: 20px;
+            }
+            h2 {
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .section {
+                display: none;
+                background-color: white;
+                color: black;
+                border-radius: 10px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            }
+            .section.active {
+                display: block;
+            }
+            textarea {
+                width: 100%;
+                padding: 12px;
+                font-size: 16px;
+                margin-bottom: 12px;
+                border: 2px solid #c6006e;
+                border-radius: 5px;
+            }
             button, input[type=submit] {
-                padding: 10px 20px;
-                margin: 5px;
-                background-color: #007bff;
+                background-color: #c6006e;
                 color: white;
                 border: none;
-                border-radius: 5px;
+                padding: 10px 24px;
+                border-radius: 6px;
                 font-size: 16px;
+                margin: 5px;
+                cursor: pointer;
+            }
+            button:hover, input[type=submit]:hover {
+                background-color: #a0005a;
             }
         </style>
         <script>
@@ -103,14 +131,14 @@ def index():
         <h2>📋 Daily Report</h2>
         <form method="POST" action="/submit">
             <div class="section">
-                <h3>Sales</h3>
+                <h3>📦 Sales</h3>
                 <textarea name="client_name" placeholder="Client Name"></textarea>
                 <textarea name="package" placeholder="Package Sold"></textarea>
                 <textarea name="revenue" placeholder="Revenue ($)"></textarea>
                 <button type="button" onclick="next()">Next →</button>
             </div>
             <div class="section">
-                <h3>Leads</h3>
+                <h3>📞 Leads</h3>
                 <textarea name="lead_name" placeholder="Lead Name"></textarea>
                 <textarea name="lead_date" placeholder="Lead Date"></textarea>
                 <textarea name="lead_source" placeholder="Lead Source"></textarea>
@@ -118,7 +146,7 @@ def index():
                 <button type="button" onclick="next()">Next →</button>
             </div>
             <div class="section">
-                <h3>Consultations</h3>
+                <h3>👥 Consultations</h3>
                 <textarea name="consultation_name" placeholder="Consultation Name"></textarea>
                 <textarea name="consultation_outcome" placeholder="Outcome"></textarea>
                 <textarea name="consultation_source" placeholder="Source"></textarea>
@@ -126,7 +154,7 @@ def index():
                 <button type="button" onclick="next()">Next →</button>
             </div>
             <div class="section">
-                <h3>Opportunities</h3>
+                <h3>💡 Opportunities</h3>
                 <textarea name="opportunity_name" placeholder="Opportunity Name"></textarea>
                 <textarea name="opportunity_provider" placeholder="Provider"></textarea>
                 <textarea name="opportunity_description" placeholder="Description"></textarea>
@@ -134,7 +162,7 @@ def index():
                 <button type="button" onclick="next()">Next →</button>
             </div>
             <div class="section">
-                <h3>Attendance</h3>
+                <h3>📅 Attendance</h3>
                 <textarea name="attendance_done" placeholder="Attendances Done"></textarea>
                 <textarea name="no_show" placeholder="No Show"></textarea>
                 <button type="button" onclick="prev()">← Back</button>
@@ -148,7 +176,6 @@ def index():
 @app.route('/submit', methods=['POST'])
 def submit():
     data = request.form.to_dict()
-    print("📥 Received data:", data)
     save_report_to_excel(data)
     send_to_google_chat(data)
     return "✅ Report submitted successfully!"
@@ -160,7 +187,5 @@ def download_report():
         return send_file(file_path, as_attachment=True)
     return "⚠️ No report found."
 
-
-
-
-
+if __name__ == '__main__':
+    app.run(debug=True)
