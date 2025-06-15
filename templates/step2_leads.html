@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Daily Closing - Leads</title>
+  <style>
+    body {
+      background-color: #c50075;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background-color: white;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 30px;
+      border-radius: 12px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    .row {
+      margin-bottom: 20px;
+      border-bottom: 2px solid #c50075;
+      padding-bottom: 15px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+    input[type="text"], input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #aaa;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 30px;
+      background-color: #c50075;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #a0005c;
+    }
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Leads</h2>
+    <form method="post" id="leads-form">
+      {% set session_data = session.get('leads') %}
+      <div id="leads-entries">
+        {% for i in range(3) %}
+        <div class="row">
+          <label>Lead Name</label>
+          <input type="text" name="lead_name" value="{{ session_data.lead_name[i] if session_data and session_data.lead_name|length > i else '' }}">
+
+          <label>Lead Date</label>
+          <input type="date" name="lead_date" value="{{ session_data.lead_date[i] if session_data and session_data.lead_date|length > i else '' }}">
+
+          <label>Lead Source</label>
+          <input type="text" name="lead_source" value="{{ session_data.lead_source[i] if session_data and session_data.lead_source|length > i else '' }}">
+        </div>
+        {% endfor %}
+      </div>
+
+      <button type="button" onclick="addLeadRow()">➕ Add Row</button>
+      <div class="nav-buttons">
+        <a href="/"><button type="button">← Back</button></a>
+        <button type="submit">Next →</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function addLeadRow() {
+      const container = document.getElementById('leads-entries');
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.innerHTML = `
+        <label>Lead Name</label>
+        <input type="text" name="lead_name">
+
+        <label>Lead Date</label>
+        <input type="date" name="lead_date">
+
+        <label>Lead Source</label>
+        <input type="text" name="lead_source">
+      `;
+      container.appendChild(div);
+    }
+  </script>
+</body>
+</html>

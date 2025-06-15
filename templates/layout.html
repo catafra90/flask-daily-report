@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Figurella Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <div class="sidebar">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Figurella Logo" class="logo">
+        <nav>
+            <a href="/">🏠 Home</a>
+            <a href="/daily-report">📋 Daily Report</a>
+            <a href="/analytics">📊 Analytics</a>
+            <a href="/automation">🧠 Automation</a>
+            <a href="/clients">👥 Clients</a>
+            <a href="/scheduling">📅 Scheduling</a>
+        </nav>
+    </div>
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

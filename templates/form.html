@@ -1,181 +1,200 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Daily Report App</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            -webkit-overflow-scrolling: touch;
-            overflow: hidden;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Report</title>
+  <style>
+    body {
+      background-color: #c50075;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
 
-        .page {
-            display: none;
-            height: 100%;
-            padding: 20px;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
+    .container {
+      background-color: white;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.15);
+    }
 
-        .active {
-            display: block;
-        }
+    h1 {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
 
-        h2 {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
+    label {
+      display: block;
+      margin-top: 20px;
+      font-weight: bold;
+    }
 
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 20px;
-            font-size: 20px;
-        }
+    textarea, input[type="text"], input[type="number"], input[type="date"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 8px;
+      border: 2px solid #c50075;
+      border-radius: 6px;
+      min-height: 60px;
+      resize: vertical;
+    }
 
-        input, textarea {
-            width: 100%;
-            font-size: 22px;
-            padding: 20px;
-            margin-top: 8px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-            min-height: 150px;
-        }
+    .step {
+      display: none;
+    }
 
-        textarea {
-            height: 250px;
-            resize: vertical;
-        }
+    .step.active {
+      display: block;
+    }
 
-        button {
-            padding: 20px;
-            font-size: 22px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            margin-top: 30px;
-            width: 100%;
-        }
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+    }
 
-        button:hover {
-            background-color: #218838;
-        }
-    </style>
+    button {
+      background-color: #c50075;
+      color: white;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #a0005c;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        width: 95%;
+        padding: 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <form method="POST" id="reportForm">
-        <div id="page1" class="page active">
-            <h2>📦 Sales</h2>
-            <label>Client Name</label>
-            <input type="text" name="client" inputmode="text" required>
+  <h1>📋 Daily Report</h1>
+  <div class="container">
+    <form method="post">
+      <!-- Step 1: Sales -->
+      <div class="step active" id="step-1">
+        <label>Client Name:</label>
+        <textarea name="client_name" required></textarea>
 
-            <label>Package Sold</label>
-            <input type="text" name="package" inputmode="text" required>
+        <label>Package Sold:</label>
+        <textarea name="package"></textarea>
 
-            <label>Revenue ($)</label>
-            <input type="number" name="revenue" step="0.01" inputmode="decimal" required>
+        <label>Revenue ($):</label>
+        <input name="revenue" type="number" step="0.01">
+
+        <div class="button-row">
+          <span></span>
+          <button type="button" onclick="nextStep()">Next →</button>
         </div>
+      </div>
 
-        <div id="page2" class="page">
-            <h2>📋 Leads</h2>
-            <label>Lead Name</label>
-            <input type="text" name="lead_name" inputmode="text" required>
+      <!-- Step 2: Lead -->
+      <div class="step" id="step-2">
+        <label>Lead Name:</label>
+        <textarea name="lead_name"></textarea>
 
-            <label>Lead Date</label>
-            <input type="date" name="lead_date" required>
+        <label>Lead Date:</label>
+        <input name="lead_date" type="date">
 
-            <label>Lead Source</label>
-            <input type="text" name="lead_source" inputmode="text" required>
+        <label>Lead Source:</label>
+        <textarea name="lead_source"></textarea>
+
+        <div class="button-row">
+          <button type="button" onclick="prevStep()">← Back</button>
+          <button type="button" onclick="nextStep()">Next →</button>
         </div>
+      </div>
 
-        <div id="page3" class="page">
-            <h2>📞 Consultations</h2>
-            <label>Consultation Name</label>
-            <input type="text" name="consult_name" inputmode="text" required>
+      <!-- Step 3: Consultation -->
+      <div class="step" id="step-3">
+        <label>Consultation Name:</label>
+        <textarea name="consultation_name"></textarea>
 
-            <label>Consultation Outcome</label>
-            <input type="text" name="consult_outcome" inputmode="text" required>
+        <label>Consultation Outcome:</label>
+        <textarea name="consultation_outcome"></textarea>
 
-            <label>Consultation Source</label>
-            <input type="text" name="consult_source" inputmode="text" required>
+        <label>Consultation Source:</label>
+        <textarea name="consultation_source"></textarea>
+
+        <div class="button-row">
+          <button type="button" onclick="prevStep()">← Back</button>
+          <button type="button" onclick="nextStep()">Next →</button>
         </div>
+      </div>
 
-        <div id="page4" class="page">
-            <h2>💡 Opportunities</h2>
-            <label>Opportunity Name</label>
-            <input type="text" name="opp_name" inputmode="text" required>
+      <!-- Step 4: Opportunity -->
+      <div class="step" id="step-4">
+        <label>Opportunity Name:</label>
+        <textarea name="opportunity_name"></textarea>
 
-            <label>Opportunity Provider</label>
-            <input type="text" name="opp_provider" inputmode="text" required>
+        <label>Opportunity Provider:</label>
+        <textarea name="opportunity_provider"></textarea>
 
-            <label>Opportunity Description</label>
-            <textarea name="opp_desc" required></textarea>
+        <label>Opportunity Description:</label>
+        <textarea name="opportunity_description"></textarea>
+
+        <div class="button-row">
+          <button type="button" onclick="prevStep()">← Back</button>
+          <button type="button" onclick="nextStep()">Next →</button>
         </div>
+      </div>
 
-        <div id="page5" class="page">
-            <h2>📅 Attendance</h2>
-            <label>Attendances Done</label>
-            <input type="number" name="attendance" inputmode="numeric" required>
+      <!-- Step 5: Attendance -->
+      <div class="step" id="step-5">
+        <label>Attendances Done:</label>
+        <input name="attendance_done" type="number">
 
-            <label>No Shows</label>
-            <input type="number" name="no_shows" inputmode="numeric" required>
+        <label>No Show:</label>
+        <input name="no_show" type="number">
 
-            <button type="submit">✅ Submit Report</button>
+        <div class="button-row">
+          <button type="button" onclick="prevStep()">← Back</button>
+          <button type="submit">✅ Submit Report</button>
         </div>
+      </div>
     </form>
+  </div>
 
-    <script>
-        let currentPage = 1;
-        const totalPages = 5;
+  <script>
+    let currentStep = 1;
+    const totalSteps = 5;
 
-        function showPage(pageNum) {
-            for (let i = 1; i <= totalPages; i++) {
-                document.getElementById("page" + i).classList.remove("active");
-            }
-            document.getElementById("page" + pageNum).classList.add("active");
-        }
+    function showStep(step) {
+      for (let i = 1; i <= totalSteps; i++) {
+        document.getElementById(`step-${i}`).classList.remove("active");
+      }
+      document.getElementById(`step-${step}`).classList.add("active");
+    }
 
-        document.addEventListener('touchstart', handleTouchStart, false);
-        document.addEventListener('touchmove', handleTouchMove, false);
+    function nextStep() {
+      if (currentStep < totalSteps) {
+        currentStep++;
+        showStep(currentStep);
+      }
+    }
 
-        let xDown = null;
-
-        function handleTouchStart(evt) {
-            const firstTouch = evt.touches[0];
-            xDown = firstTouch.clientX;
-        }
-
-        function handleTouchMove(evt) {
-            if (!xDown) return;
-            let xUp = evt.touches[0].clientX;
-            let xDiff = xDown - xUp;
-
-            if (Math.abs(xDiff) > 50) {
-                if (xDiff > 0 && currentPage < totalPages) {
-                    currentPage++;
-                } else if (xDiff < 0 && currentPage > 1) {
-                    currentPage--;
-                }
-                showPage(currentPage);
-                xDown = null;
-            }
-        }
-    </script>
+    function prevStep() {
+      if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+      }
+    }
+  </script>
 </body>
 </html>
-
-
 
 
 
