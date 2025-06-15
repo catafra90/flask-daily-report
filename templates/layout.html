@@ -7,7 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-    <div class="sidebar">
+    <!-- Mobile top bar -->
+    <div class="topbar">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <span class="topbar-title">Figurella</span>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Figurella Logo" class="logo">
         <nav>
             <a href="/">🏠 Home</a>
@@ -18,8 +25,32 @@
             <a href="/scheduling">📅 Scheduling</a>
         </nav>
     </div>
+
+    <!-- Main content -->
     <div class="main-content">
-        {% block content %}{% endblock %}
+        <div class="content-box">
+            {% block content %}{% endblock %}
+        </div>
     </div>
+
+    <!-- Toggle script -->
+  <script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('show');
+    }
+
+    // Optional: close sidebar when clicking outside (mobile only)
+    document.addEventListener('click', function (e) {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.querySelector('.menu-toggle');
+        const isClickInsideSidebar = sidebar.contains(e.target);
+        const isClickOnToggle = toggleBtn.contains(e.target);
+
+        if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('show')) {
+            sidebar.classList.remove('show');
+        }
+    });
+</script>
 </body>
 </html>
