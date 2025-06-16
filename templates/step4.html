@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-briefcase"></i> Opportunities</h2>
+
+<form method="POST">
+    <div id="opportunity-container">
+        {% for i in range(3) %}
+        <div class="opportunity-block mb-4">
+            <div class="mb-2">
+                <label>Opportunity Name:</label>
+                <textarea name="opportunity_opportunity_name" class="form-control" rows="1">{{ opportunities.name[i] if opportunities.name and i < opportunities.name|length else '' }}</textarea>
+            </div>
+            <div class="mb-2">
+                <label>Opportunity Provider:</label>
+                <textarea name="opportunity_opportunity_provider" class="form-control" rows="1">{{ opportunities.provider[i] if opportunities.provider and i < opportunities.provider|length else '' }}</textarea>
+            </div>
+            <div class="mb-2">
+                <label>Opportunity Description:</label>
+                <textarea name="opportunity_opportunity_description" class="form-control" rows="1">{{ opportunities.description[i] if opportunities.description and i < opportunities.description|length else '' }}</textarea>
+            </div>
+            <hr>
+        </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" class="btn btn-outline-primary mb-3" id="add-opportunity">+ Add</button>
+
+    <div class="d-flex justify-content-between">
+        <a href="{{ url_for('step3') }}" class="btn btn-secondary">&larr; Back</a>
+        <button type="submit" class="btn btn-primary">Next &rarr;</button>
+    </div>
+</form>
+
+<script>
+document.getElementById("add-opportunity").addEventListener("click", function () {
+    const container = document.getElementById("opportunity-container");
+    const block = document.createElement("div");
+    block.className = "opportunity-block mb-4";
+    block.innerHTML = `
+        <div class="mb-2">
+            <label>Opportunity Name:</label>
+            <textarea name="opportunity_opportunity_name" class="form-control" rows="1"></textarea>
+        </div>
+        <div class="mb-2">
+            <label>Opportunity Provider:</label>
+            <textarea name="opportunity_opportunity_provider" class="form-control" rows="1"></textarea>
+        </div>
+        <div class="mb-2">
+            <label>Opportunity Description:</label>
+            <textarea name="opportunity_opportunity_description" class="form-control" rows="1"></textarea>
+        </div>
+        <hr>
+    `;
+    container.appendChild(block);
+});
+</script>
+{% endblock %}

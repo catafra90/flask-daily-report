@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-check-circle"></i> Attendance</h2>
+
+<form method="POST" onsubmit="showPopup(event)">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <label>Attendances Done:</label>
+            <textarea name="attendance_done" class="form-control" rows="1"></textarea>
+        </div>
+        <div class="col-md-6">
+            <label>No Show:</label>
+            <textarea name="no_show" class="form-control" rows="1"></textarea>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <a href="{{ url_for('step4') }}" class="btn btn-secondary">&larr; Back</a>
+        <button type="submit" class="btn btn-success">Submit</button>
+    </div>
+</form>
+
+<div id="popup" class="popup" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; border: 1px solid #ccc; padding: 20px; z-index: 1000; box-shadow: 0 0 10px rgba(0,0,0,0.2);">
+    <button onclick="closePopup()" style="float:right; background:none; border:none; font-size:16px;">&times;</button>
+    <p class="mt-4">Report submitted successfully!</p>
+</div>
+
+<script>
+function showPopup(event) {
+    setTimeout(function () {
+        document.getElementById("popup").style.display = "block";
+    }, 100);
+}
+
+function closePopup() {
+    document.getElementById("popup").style.display = "none";
+}
+</script>
+{% endblock %}

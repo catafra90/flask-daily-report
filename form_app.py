@@ -1,167 +1,189 @@
-from flask import Flask, render_template, request, redirect, session, send_file
+
+from flask import Flask, render_template, request, redirect, url_for, send_file, session
 from openpyxl import Workbook, load_workbook
 from datetime import datetime
 import os
+import pandas as pd
 import requests
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'
+app.secret_key = 'your_secure_random_key_here'
 
 CHAT_WEBHOOK_URL = "https://chat.googleapis.com/v1/spaces/4ZsvACAAAAE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=QAsMtcgO05jwCeg2HXcDrCK7ngmtq0vpQwguobG8-vU"
 
-file_path = os.path.join("data", "reports.xlsx")
-os.makedirs("data", exist_ok=True)
-
-# === INITIALIZE EXCEL FILE ===
-if not os.path.exists(file_path):
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Sales"
-    ws.append(["Date", "Client Name", "Package", "Revenue"])
-    wb.create_sheet(title="Leads").append(["Date", "Lead Name", "Lead Date", "Lead Source"])
-    wb.create_sheet(title="Consultation").append(["Date", "Consultation Name", "Consultation Outcome", "Consultation Source"])
-    wb.create_sheet(title="Opportunity").append(["Date", "Opportunity Name", "Opportunity Provider", "Opportunity Description"])
-    wb.create_sheet(title="Attendance").append(["Date", "Attendances Done", "No Show"])
-    wb.save(file_path)
-
-# === PLATFORM ROUTES ===
+def send_to_google_chat(message):
+    try:
+        payload = {"text": message}
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(CHAT_WEBHOOK_URL, headers=headers, json=payload)
+        print("✅ Sent to Google Chat:", response.status_code)
+    except Exception as e:
+        print("❌ Failed to send to Google Chat:", e)
 
 @app.route('/')
-def home():
-    return render_template('index.html')
+def index():
+    return render_template('index.html', active_page='home')
 
-@app.route('/analytics')
-def analytics():
-    return "<h2>📊 Analytics Page – Coming Soon</h2>"
+@app.route('/step1', methods=['GET', 'POST'])
+def step1():
+    if request.method == 'POST':
+        session['sales'] = {
+            'client_name': request.form.getlist('client_name'),
+            'package': request.form.getlist('package'),
+            'revenue': request.form.getlist('revenue')
+        }
+        return redirect(url_for('step2'))
+    return render_template('step1.html', sales=session.get('sales', {}), active_page='daily-report')
 
-@app.route('/automation')
-def automation():
-    return "<h2>🧠 Automation Page – Coming Soon</h2>"
+@app.route('/step2', methods=['GET', 'POST'])
+def step2():
+    if request.method == 'POST':
+        session['leads'] = {
+            'name': request.form.getlist('lead_name'),
+            'date': request.form.getlist('lead_date'),
+            'source': request.form.getlist('lead_source')
+        }
+        return redirect(url_for('step3'))
+    return render_template('step2.html', leads=session.get('leads', {}), active_page='daily-report')
+
+@app.route('/step3', methods=['GET', 'POST'])
+def step3():
+    if request.method == 'POST':
+        session['consultations'] = {
+            'name': request.form.getlist('consultation_name'),
+            'outcome': request.form.getlist('consultation_outcome'),
+            'source': request.form.getlist('consultation_source')
+        }
+        return redirect(url_for('step4'))
+    return render_template('step3.html', consultations=session.get('consultations', {}), active_page='daily-report')
+
+@app.route('/step4', methods=['GET', 'POST'])
+def step4():
+    if request.method == 'POST':
+        session['opportunities'] = {
+            'name': request.form.getlist('opportunity_name'),
+            'provider': request.form.getlist('opportunity_provider'),
+            'description': request.form.getlist('opportunity_description')
+        }
+        return redirect(url_for('step5'))
+    return render_template('step4.html', opportunities=session.get('opportunities', {}), active_page='daily-report')
+
+@app.route('/step5', methods=['GET', 'POST'])
+def step5():
+    if request.method == 'POST':
+        session['attendance_done'] = request.form.get('attendance_done', '')
+        session['no_show'] = request.form.get('no_show', '')
+        return redirect(url_for('submitted'))
+
+    attendance_data = {
+        'attendance_done': session.get('attendance_done', ''),
+        'no_show': session.get('no_show', '')
+    }
+
+    return render_template('step5.html', attendance=attendance_data, active_page='daily-report')
+
+@app.route('/submitted')
+def submitted():
+    try:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        filepath = "reports.xlsx"
+
+        if os.path.exists(filepath):
+            wb = load_workbook(filepath)
+        else:
+            wb = Workbook()
+            for sheet in wb.sheetnames:
+                del wb[sheet]
+            for name, headers in {
+                "Sales": ["Date", "Client Name", "Package", "Revenue"],
+                "Leads": ["Date", "Lead Name", "Lead Date", "Lead Source"],
+                "Consultations": ["Date", "Consultation Name", "Consultation Outcome", "Consultation Source"],
+                "Opportunities": ["Date", "Opportunity Name", "Opportunity Provider", "Opportunity Description"],
+                "Attendance": ["Date", "Attendance Done", "No Show"]
+            }.items():
+                ws = wb.create_sheet(title=name)
+                ws.append(headers)
+
+        # --- SALES ---
+        sales = session.get('sales', {})
+        ws = wb["Sales"]
+        for i in range(len(sales.get('client_name', []))):
+            if sales['client_name'][i] or sales['package'][i] or sales['revenue'][i]:
+                ws.append([timestamp, sales['client_name'][i], sales['package'][i], sales['revenue'][i]])
+
+        # --- LEADS ---
+        leads = session.get('leads', {})
+        ws = wb["Leads"]
+        for i in range(len(leads.get('name', []))):
+            if leads['name'][i] or leads['date'][i] or leads['source'][i]:
+                ws.append([timestamp, leads['name'][i], leads['date'][i], leads['source'][i]])
+
+        # --- CONSULTATIONS ---
+        consultations = session.get('consultations', {})
+        ws = wb["Consultations"]
+        for i in range(len(consultations.get('name', []))):
+            if consultations['name'][i] or consultations['outcome'][i] or consultations['source'][i]:
+                ws.append([timestamp, consultations['name'][i], consultations['outcome'][i], consultations['source'][i]])
+
+        # --- OPPORTUNITIES ---
+        opportunities = session.get('opportunities', {})
+        ws = wb["Opportunities"]
+        for i in range(len(opportunities.get('name', []))):
+            if opportunities['name'][i] or opportunities['provider'][i] or opportunities['description'][i]:
+                ws.append([timestamp, opportunities['name'][i], opportunities['provider'][i], opportunities['description'][i]])
+
+        # --- ATTENDANCE ---
+        attendance_done = session.get('attendance_done', '')
+        no_show = session.get('no_show', '')
+        if attendance_done or no_show:
+            ws = wb["Attendance"]
+            ws.append([timestamp, attendance_done, no_show])
+
+        wb.save(filepath)
+        print("✅ Excel report saved as reports.xlsx")
+
+        # --- Google Chat Message ---
+        message = f"**Daily Report Submitted**\n\n"
+        if sales:
+            message += "*Sales:*\n"
+            for i in range(len(sales.get('client_name', []))):
+                if sales['client_name'][i] or sales['package'][i] or sales['revenue'][i]:
+                    message += f"- {sales['client_name'][i]} | {sales['package'][i]} | ${sales['revenue'][i]}\n"
+        if leads:
+            message += "\n*Leads:*\n"
+            for i in range(len(leads.get('name', []))):
+                if leads['name'][i] or leads['date'][i] or leads['source'][i]:
+                    message += f"- {leads['name'][i]} | {leads['date'][i]} | {leads['source'][i]}\n"
+        if consultations:
+            message += "\n*Consultations:*\n"
+            for i in range(len(consultations.get('name', []))):
+                if consultations['name'][i] or consultations['outcome'][i] or consultations['source'][i]:
+                    message += f"- {consultations['name'][i]} | {consultations['outcome'][i]} | {consultations['source'][i]}\n"
+        if opportunities:
+            message += "\n*Opportunities:*\n"
+            for i in range(len(opportunities.get('name', []))):
+                if opportunities['name'][i] or opportunities['provider'][i] or opportunities['description'][i]:
+                    message += f"- {opportunities['name'][i]} | {opportunities['provider'][i]} | {opportunities['description'][i]}\n"
+        if attendance_done or no_show:
+            message += f"\n*Attendance:* {attendance_done} done, {no_show} no-show"
+
+        send_to_google_chat(message)
+        session.clear()
+
+    except Exception as e:
+        print("❌ Error in submission:", e)
+
+    return render_template("submitted.html")
 
 @app.route('/clients')
 def clients():
-    return "<h2>👥 Clients Page – Coming Soon</h2>"
-
-@app.route('/scheduling')
-def scheduling():
-    return "<h2>📅 Scheduling Page – Coming Soon</h2>"
-
-# === DAILY REPORT FLOW ===
-
-@app.route('/daily-report', methods=['GET', 'POST'])
-def step1():
-    if request.method == 'POST':
-        session['sales'] = request.form.to_dict(flat=False)
-        return redirect('/leads')
-    return render_template('step1_sales.html', session_data=session.get('sales'))
-
-@app.route('/leads', methods=['GET', 'POST'])
-def step2():
-    if request.method == 'POST':
-        session['leads'] = request.form.to_dict(flat=False)
-        return redirect('/consultations')
-    return render_template('step2_leads.html', session_data=session.get('leads'))
-
-@app.route('/consultations', methods=['GET', 'POST'])
-def step3():
-    if request.method == 'POST':
-        session['consultations'] = request.form.to_dict(flat=False)
-        return redirect('/opportunities')
-    return render_template('step3_consultation.html', session_data=session.get('consultations'))
-
-@app.route('/opportunities', methods=['GET', 'POST'])
-def step4():
-    if request.method == 'POST':
-        session['opportunities'] = request.form.to_dict(flat=False)
-        return redirect('/attendance')
-    return render_template('step4_opportunity.html', session_data=session.get('opportunities'))
-
-@app.route('/attendance', methods=['GET', 'POST'])
-def step5():
-    if request.method == 'POST':
-        session['attendance'] = request.form.to_dict()
-        wb = load_workbook(file_path)
-
-        sales = session.get('sales', {})
-        leads = session.get('leads', {})
-        consultations = session.get('consultations', {})
-        opportunities = session.get('opportunities', {})
-        attendance = session.get('attendance', {})
-
-        sales_ws = wb["Sales"]
-        leads_ws = wb["Leads"]
-        consultation_ws = wb["Consultation"]
-        opportunity_ws = wb["Opportunity"]
-        attendance_ws = wb["Attendance"]
-
-        chat_message = [f"*\U0001F4C5 Daily Report - {datetime.now().date()}*\n"]
-
-        # SALES
-        chat_message.append("*\U0001F4E6 Sales*\n_Client Name | Package | Revenue_")
-        for i in range(len(sales.get('client_name', []))):
-            client = sales.get('client_name', [''])[i].strip()
-            package = sales.get('package', [''])[i].strip()
-            revenue = sales.get('revenue', [''])[i].strip()
-            if client or package or revenue:
-                sales_ws.append([datetime.now().date(), client, package, revenue])
-                chat_message.append(f"- {client} | {package} | {revenue}")
-
-        # LEADS
-        chat_message.append("\n*\U0001F4CB Leads*\n_Lead Name | Lead Date | Lead Source_")
-        for i in range(len(leads.get('lead_name', []))):
-            name = leads.get('lead_name', [''])[i].strip()
-            date = leads.get('lead_date', [''])[i].strip()
-            source = leads.get('lead_source', [''])[i].strip()
-            if name or date or source:
-                leads_ws.append([datetime.now().date(), name, date, source])
-                chat_message.append(f"- {name} | {date} | {source}")
-
-        # CONSULTATIONS
-        chat_message.append("\n*\U0001F4AC Consultations*\n_Consultation Name | Outcome | Source_")
-        for i in range(len(consultations.get('consultation_name', []))):
-            name = consultations.get('consultation_name', [''])[i].strip()
-            outcome = consultations.get('consultation_outcome', [''])[i].strip()
-            source = consultations.get('consultation_source', [''])[i].strip()
-            if name or outcome or source:
-                consultation_ws.append([datetime.now().date(), name, outcome, source])
-                chat_message.append(f"- {name} | {outcome} | {source}")
-
-        # OPPORTUNITIES
-        chat_message.append("\n*\U0001F31F Opportunities*\n_Opportunity Name | Provider | Description_")
-        for i in range(len(opportunities.get('opportunity_name', []))):
-            name = opportunities.get('opportunity_name', [''])[i].strip()
-            provider = opportunities.get('opportunity_provider', [''])[i].strip()
-            description = opportunities.get('opportunity_description', [''])[i].strip()
-            if name or provider or description:
-                opportunity_ws.append([datetime.now().date(), name, provider, description])
-                chat_message.append(f"- {name} | {provider} | {description}")
-
-        # ATTENDANCE
-        attended = attendance.get('attended', '').strip()
-        no_show = attendance.get('no_show', '').strip()
-        if attended or no_show:
-            attendance_ws.append([datetime.now().date(), attended, no_show])
-            chat_message.append("\n*\U0001F4CA Attendance*\n_Attendances Done | No Show_")
-            chat_message.append(f"- {attended} | {no_show}")
-
-        wb.save(file_path)
-        session.clear()
-
-        try:
-            requests.post(CHAT_WEBHOOK_URL, json={"text": "\n".join(chat_message)})
-        except Exception as e:
-            print("❌ Failed to send to Google Chat:", e)
-
-        return "✅ Report Submitted"
-
-    return render_template('step5_attendance.html', session_data=session.get('attendance'))
-
-@app.route('/download-report')
-def download_report():
-    if os.path.exists(file_path):
-        return send_file(file_path, as_attachment=True)
-    return "⚠️ No report found."
+    try:
+        df = pd.read_excel("all_clients.xlsx")
+        data = df.values.tolist()
+        return render_template("clients.html", active_page='clients', clients=data)
+    except Exception as e:
+        print("❌ Error loading client list:", e)
+        return render_template("clients.html", active_page='clients', clients=[])
 
 if __name__ == '__main__':
-   app.run(debug=True, host='0.0.0.0')
-
+    app.run(debug=True)

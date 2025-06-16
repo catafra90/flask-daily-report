@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-bag-fill"></i> Sales</h2>
+
+<form method="POST">
+    <div id="sales-container">
+        {% for i in range(3) %}
+        <div class="sales-block mb-4">
+            <div class="mb-2">
+                <label>Client Name:</label>
+                <textarea name="client_name" class="form-control" rows="1">{{ sales.client_name[i] if sales.client_name and i < sales.client_name|length else '' }}</textarea>
+            </div>
+            <div class="mb-2">
+                <label>Package:</label>
+                <textarea name="package" class="form-control" rows="1">{{ sales.package[i] if sales.package and i < sales.package|length else '' }}</textarea>
+            </div>
+            <div class="mb-2">
+                <label>Revenue:</label>
+                <textarea name="revenue" class="form-control" rows="1">{{ sales.revenue[i] if sales.revenue and i < sales.revenue|length else '' }}</textarea>
+            </div>
+            <hr>
+        </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" class="btn btn-outline-primary mb-3" id="add-sales">+ Add</button>
+
+    <div class="d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary">Next &rarr;</button>
+    </div>
+</form>
+
+<script>
+document.getElementById("add-sales").addEventListener("click", function () {
+    const container = document.getElementById("sales-container");
+    const block = document.createElement("div");
+    block.className = "sales-block mb-4";
+    block.innerHTML = `
+        <div class="mb-2">
+            <label>Client Name:</label>
+            <textarea name="client_name" class="form-control" rows="1"></textarea>
+        </div>
+        <div class="mb-2">
+            <label>Package:</label>
+            <textarea name="package" class="form-control" rows="1"></textarea>
+        </div>
+        <div class="mb-2">
+            <label>Revenue:</label>
+            <textarea name="revenue" class="form-control" rows="1"></textarea>
+        </div>
+        <hr>
+    `;
+    container.appendChild(block);
+});
+</script>
+{% endblock %}

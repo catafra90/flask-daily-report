@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-person-lines-fill"></i> Leads</h2>
+
+<form method="POST">
+    <div id="leads-container">
+        {% for i in range(3) %}
+        <div class="leads-block mb-4">
+            <div class="mb-2">
+                <label>Lead Name:</label>
+                <textarea name="lead_name" class="form-control" rows="1">{{ leads.name[i] if leads.name and i < leads.name|length else '' }}</textarea>
+            </div>
+            <div class="mb-2">
+                <label>Lead Date:</label>
+                <textarea name="lead_date" class="form-control" rows="1">{{ leads.date[i] if leads.date and i < leads.date|length else '' }}</textarea>
+            </div>
+            <div class="mb-2">
+                <label>Lead Source:</label>
+                <textarea name="lead_source" class="form-control" rows="1">{{ leads.source[i] if leads.source and i < leads.source|length else '' }}</textarea>
+            </div>
+            <hr>
+        </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" class="btn btn-outline-primary mb-3" id="add-leads">+ Add</button>
+
+    <div class="d-flex justify-content-between">
+        <a href="{{ url_for('step1') }}" class="btn btn-secondary">&larr; Back</a>
+        <button type="submit" class="btn btn-primary">Next &rarr;</button>
+    </div>
+</form>
+
+<script>
+document.getElementById("add-leads").addEventListener("click", function () {
+    const container = document.getElementById("leads-container");
+    const block = document.createElement("div");
+    block.className = "leads-block mb-4";
+    block.innerHTML = `
+        <div class="mb-2">
+            <label>Lead Name:</label>
+            <textarea name="lead_name" class="form-control" rows="1"></textarea>
+        </div>
+        <div class="mb-2">
+            <label>Lead Date:</label>
+            <textarea name="lead_date" class="form-control" rows="1"></textarea>
+        </div>
+        <div class="mb-2">
+            <label>Lead Source:</label>
+            <textarea name="lead_source" class="form-control" rows="1"></textarea>
+        </div>
+        <hr>
+    `;
+    container.appendChild(block);
+});
+</script>
+{% endblock %}
